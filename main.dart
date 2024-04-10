@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:weather/Weather.dart';
+import 'package:weather/WeatherDetail.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,55 +31,95 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePage extends State<MyHomePage> {
 
   final String WEATHER_KEY = "82ba6ea4483149d4b0792650240504";
+  final Color COLOR_STD = Color(0xFF43A6C6);
+  List<Weather> weather = [];
+
+  TextEditingController ctrCity = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Weather",
+      theme: ThemeData( scaffoldBackgroundColor: COLOR_STD,),
       home: Scaffold(
         appBar: AppBar(
           title: const Text("Weather"),
-          backgroundColor: Colors.lightBlueAccent,
+          backgroundColor: COLOR_STD,
         ),
-        body: Column(
-          children: [
+        body:
+          Center(
+            child:Column(
+              children: [
+              SizedBox(height: 25.0,width: 100.0,),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: 50.0,
+                  maxWidth: 200.0,
+                ),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'City',
+                    hintText: 'Insert a city',
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                  controller: ctrCity,)
+              ),
+              ElevatedButton(
+                  onPressed: (){getWeatherByCity();},
+                  child: const Text("Search...")),
+              Expanded(
+                  child: ListView.builder(
+                      itemCount: weather.length,
+                      itemBuilder: (BuildContext context, int index){
+                        return ListTile(
+                          title: Text(weather[index].locality),
+                          subtitle: Text(weather[index].description),
+                          leading: Image.network(weather[index].icon!),
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => WeatherDetail(weather: weather[index],))
+                            );
+                          },
+                        );
+                      }
+                  )
+              ),
 
-          ],
-        ),
-      ),
+              ],),
+          ),
+      )
     );
   }
 
-/*Future getWeatherByIp() async {
-    const dominio = 'www.googleapis.com';
-    const path = '/books/v1/volumes';
-    Map<String, dynamic> parametri = {'q': "auto:ip"};
-    Uri uri = Uri.https(dominio, path, parametri);
-    print(uri);
-    http.get(uri).then((result) {
-
-      final booksData = json.decode(result.body);
-      final bookDataItem = booksData['items'];
-      List<Book> books = bookDataItem.map<Book>((json) => Book.fromJson(json)).toList();
-      setState(() {
-        this.books = books;
-      });
-    });
-  }
-  Future getWeatherByCity() async {
+  Future getWeatherByLocation() async {
     const dominio = 'http://api.weatherapi.com/v1';
     const path = '/current.json';
-    Map<String, dynamic> parametri = {'key': WEATHER_KEY ,'q': ctrCity.text, 'days': ctrDasy.Text};
-    Uri uri = Uri.https(dominio, path, parametri);
+    Map<String, dynamic> parameters = {'key': WEATHER_KEY ,'q': "au to:ip"};
+    Uri uri = Uri.parse(dominio+path).resolveUri(Uri(queryParameters: parameters));
+    print(uri);
+    http.get(uri).then((result) {
+      final weathersData = json.decode(result.body);
+      Weather weathers = Weather.fromJson(weathersData);
+      print(weathers);
+    });
+  }
+
+  Future getWeatherByCity() async {
+    const dominio = 'http://api.weatherapi.com/v1';
+    const path = '/forecast.json';
+    Map<String, dynamic> parameters = {'key': WEATHER_KEY ,'q': ctrCity.text, 'days': "3"};
+    Uri uri = Uri.parse(dominio+path).resolveUri(Uri(queryParameters: parameters));
     print(uri);
     http.get(uri).then((result) {
 
-      final booksData = json.decode(result.body);
-      final bookDataItem = booksData['items'];
-      List<Book> books = bookDataItem.map<Book>((json) => Book.fromJson(json)).toList();
+      final weathersData = json.decode(result.body);
+      Weather weathers = Weather.fromJson(weathersData);
       setState(() {
-        this.books = books;
+        weather.add(weathers);
       });
+      print(weathers);
     });
-  }*/
+  }
 }
