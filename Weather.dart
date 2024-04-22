@@ -17,8 +17,8 @@ class Weather{
 
 
   Weather.fromJsonNow(Map<String, dynamic> json):
-        _locality = json['location']['name'],
-        _country = json['location']['country'],
+        _locality = json['location']['name'].toUpperCase(),
+        _country = json['location']['country'].toUpperCase(),
         _localTime = json['location']['localtime'],
         _icon = json['current']['condition']['icon'] ?? 'https://i.ibb.co/GnPgM2d/white.png',
         _temperature = json['current']['temp_c'].toDouble(),
@@ -27,16 +27,16 @@ class Weather{
         _wind = json['current']['wind_kph'].toDouble(),
         _humidity = json['current']['humidity'].toDouble();
 
-  Weather.fromJson(Map<String, dynamic> json):
-        _locality = json['location']['name'],
-        _country = json['location']['country'],
-        _localTime = "",
-        _icon = json['forecast']['forecastday']['day']['condition']['icon'] ?? 'https://i.ibb.co/GnPgM2d/white.png',
-        _temperature = json['forecast']['forecastday']['day']['day']['avgtemp_c'].toDouble(),
-        _description = json['forecast']['forecastday']['day']['condition']['text'],
-        _rainfall = json['forecast']['forecastday']['day']['totalprecip_mm'].toDouble(),
-        _wind = json['forecast']['forecastday']['day']['maxwind_kph'].toDouble(),
-        _humidity = json['forecast']['forecastday']['day']['avghumidity'].toDouble();
+  Weather.fromJson(Map<String, dynamic> json, String locality):
+        _locality = locality.toUpperCase(),
+        _country = "",
+        _localTime = json["date"],
+        _icon = json['day']['condition']['icon'] ?? 'https://i.ibb.co/GnPgM2d/white.png',
+        _temperature = json['day']['avgtemp_c'].toDouble(),
+        _description = json['day']['condition']['text'],
+        _rainfall = json['day']['totalprecip_mm'].toDouble(),
+        _wind = json['day']['maxwind_kph'].toDouble(),
+        _humidity = json['day']['avghumidity'].toDouble();
 
 
   double get wind => _wind;

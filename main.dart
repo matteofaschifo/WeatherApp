@@ -35,11 +35,11 @@ class _MyHomePage extends State<MyHomePage> {
   Weather currentWeather = Weather("", "", "", "", 0.0, "", 0.0, 0.0, 0.0);
   List<Weather> weather = [];
   TextEditingController ctrCity = TextEditingController();
-
+  bool visible = false;
 
   @override
   Widget build(BuildContext context) {
-    //getWeatherByLocation();
+    getWeatherByLocation();
     return MaterialApp(
       title: "Weather",
       theme: ThemeData(
@@ -107,15 +107,24 @@ class _MyHomePage extends State<MyHomePage> {
               SizedBox(height: 10.0,width: 1.0,),
               ElevatedButton(
                   onPressed: (){
-                      getWeatherByCity();
+                      visible = getWeatherByCity();
+                      if(visible){
+                        setState(() {
+                          weather = [];
+                        });
+                      }
                     },
                   child: const Text("Search...")),
+              Visibility(
+                  child: Text("Not found", style: TextStyle(color: Colors.red),),
+                  visible: visible,
+              ),
               Expanded(
                   child: ListView.builder(
                       itemCount: weather.length,
                       itemBuilder: (BuildContext context, int index){
                         return ListTile(
-                          title: Text(weather[index].locality),
+                          title: Text(weather[index].locality+", "+weather[index].localTime, style: TextStyle(color: Colors.white),),
                           subtitle: Text(weather[index].description),
                           leading: Image.network(weather[index].icon!),
                           onTap: (){
@@ -140,7 +149,6 @@ class _MyHomePage extends State<MyHomePage> {
     const path = '/current.json';
     Map<String, dynamic> parameters = {'key': WEATHER_KEY ,'q': "auto:ip"};
     Uri uri = Uri.parse(dominio+path).resolveUri(Uri(queryParameters: parameters));
-    print(uri);
     http.get(uri).then((result) {
       final weathersData = json.decode(result.body);
       Weather weathers = Weather.fromJsonNow(weathersData);
@@ -151,19 +159,23 @@ class _MyHomePage extends State<MyHomePage> {
   }
 
   Future getWeatherByCity() async {
-    const dominio = 'http://api.weatherapi.com/v1';
+    const dominio = 'https://api.weatherapi.com/v1';
     const path = '/forecast.json';
     Map<String, dynamic> parameters = {'key': WEATHER_KEY ,'q': ctrCity.text, 'days': "3"};
     Uri uri = Uri.parse(dominio+path).resolveUri(Uri(queryParameters: parameters));
     print(uri);
     http.get(uri).then((result) {
-      final weathersData = json.decode(result.body);
-      print(weathersData);
-      List<Weather> weathers = weathersData.map<Weather>((json) => Weather.fromJson(json)).toList();
+      final weatherData = json.decode(result.body);
+      print(weatherData);
+      if(weatherData.toString().contains("error")){
+        return true;
+      }
+      final weatherDataItem = weatherData["forecast"]["forecastday"];
+      List<Weather> weather = weatherDataItem.map<Weather>((json) => Weather.fromJson(json,ctrCity.text!)).toList();
       setState(() {
-        this.weather = weathers;
+        this.weather = weather;
       });
-      print(weathers);
+      return false;
     });
   }
 }
