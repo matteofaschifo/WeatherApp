@@ -107,16 +107,11 @@ class _MyHomePage extends State<MyHomePage> {
               SizedBox(height: 10.0,width: 1.0,),
               ElevatedButton(
                   onPressed: (){
-                      visible = getWeatherByCity();
-                      if(visible){
-                        setState(() {
-                          weather = [];
-                        });
-                      }
+                      getWeatherByCity();
                     },
                   child: const Text("Search...")),
               Visibility(
-                  child: Text("Not found", style: TextStyle(color: Colors.red),),
+                  child: Text("Location not found", style: TextStyle(color: Colors.red),),
                   visible: visible,
               ),
               Expanded(
@@ -168,14 +163,18 @@ class _MyHomePage extends State<MyHomePage> {
       final weatherData = json.decode(result.body);
       print(weatherData);
       if(weatherData.toString().contains("error")){
+        setState(() {
+          this.weather = [];
+          this.visible = true;
+        });
         return true;
       }
       final weatherDataItem = weatherData["forecast"]["forecastday"];
       List<Weather> weather = weatherDataItem.map<Weather>((json) => Weather.fromJson(json,ctrCity.text!)).toList();
       setState(() {
         this.weather = weather;
+        this.visible = false;
       });
-      return false;
     });
   }
 }
